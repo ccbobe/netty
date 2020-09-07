@@ -19,14 +19,13 @@ public class StoreHandler extends ChannelInboundHandlerAdapter {
         super.channelActive(ctx);
         clientStore.add(ctx.channel().remoteAddress().toString(),ctx.channel());
         log.info("当前保存客户端信息{}",ctx.channel().remoteAddress().toString());
-        ctx.fireChannelActive();
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        super.channelReadComplete(ctx);
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        ctx.writeAndFlush(msg);
+        ctx.fireChannelRead(msg);
     }
-
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

@@ -2,7 +2,10 @@ package com.ccbobe.core;
 
 import com.ccbobe.codec.IntegerDecoder;
 import com.ccbobe.codec.IntegerEncoder;
+import com.ccbobe.codec.MsgDecoder;
+import com.ccbobe.codec.MsgEncoder;
 import com.ccbobe.handler.IntegerHandler;
+import com.ccbobe.handler.MessageHandler;
 import com.ccbobe.handler.StoreHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -18,6 +21,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
@@ -28,6 +32,9 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import java.nio.charset.Charset;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author ccbobe
@@ -64,8 +71,8 @@ public class NettyServer implements InitializingBean, DisposableBean {
         }
         if (nioFlag){
             log.info("server start Nio ...");
-            accept = new NioEventLoopGroup(1);
-            worker = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
+            accept = new NioEventLoopGroup(3);
+            worker = new NioEventLoopGroup(10);
         }
 
         ServerBootstrap bootstrap = new ServerBootstrap();
@@ -79,18 +86,16 @@ public class NettyServer implements InitializingBean, DisposableBean {
                     protected void initChannel(NioSocketChannel sh) throws Exception {
                         ChannelPipeline pipeline =sh.pipeline();
                         //分割符 \n,\r\n 等
-                        pipeline.addLast(new DelimiterBasedFrameDecoder(1024*10*10,Delimiters.lineDelimiter()));
-                        pipeline.addLast(new StringDecoder());
-                        pipeline.addLast(new StringEncoder());
-                        pipeline.addLast("logging",new LoggingHandler(LogLevel.INFO));
+                       // pipeline.addLast("logging", new LoggingHandler(LogLevel.INFO));
+                       // pipeline.addLast(new StringDecoder(Charset.forName("UTF-8")));
+                       // pipeline.addLast(new StringEncoder(Charset.forName("UTF-8")));
+                       //  pipeline.addLast(new DelimiterBasedFrameDecoder(1024 * 10 * 10, Delimiters.lineDelimiter()));
 
+                        pipeline.addLast(new MsgDecoder());
+                        pipeline.addLast("heartBeatHandler", new IdleStateHandler(45, 0, 0, TimeUnit.SECONDS));
                         pipeline.addLast(new StoreHandler());
-                        //编解码Integer
-                        pipeline.addLast(new IntegerEncoder());
-                        pipeline.addLast(new IntegerDecoder());
-                        pipeline.addLast(new IntegerHandler());
-                        pipeline.addLast("idle",new IdleStateHandler(1,1,
-                                0));
+                        pipeline.addLast(new MessageHandler());
+                        pipeline.addLast(new MsgEncoder());
                     }
                 });
 

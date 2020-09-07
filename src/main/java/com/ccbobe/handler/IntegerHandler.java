@@ -16,7 +16,7 @@ public class IntegerHandler  extends SimpleChannelInboundHandler<Integer> {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause){
         log.error("异常信息{}",cause);
         ctx.close();
     }
