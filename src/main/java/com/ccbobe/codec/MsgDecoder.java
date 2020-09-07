@@ -11,7 +11,6 @@ import java.util.List;
 public class MsgDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        in.markReaderIndex();
         int cmd = in.readInt();
         int size = in.readInt();
         if (in.readableBytes() < size) {

@@ -5,10 +5,7 @@ import com.ccbobe.codec.MsgDecoder;
 import com.ccbobe.codec.MsgEncoder;
 import com.ccbobe.core.Msg;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -40,7 +37,13 @@ class NettyApplicationTests {
         msg.setData(data.getBytes());
         msg.setSize(data.length());
         // 发起异步连接请求，绑定连接端口和host信息
-        final ChannelFuture future = b.connect("172.18.0.68", 8081).sync().channel().writeAndFlush(msg);
+        Channel channel = b.connect("172.18.0.68", 8081).sync().channel();
+
+        for (int i = 0; i <1000 ; i++) {
+            System.out.println("次数"+i);
+            channel.writeAndFlush(msg);
+        }
+        ChannelFuture future = channel.closeFuture();
         future.await();
 
     }

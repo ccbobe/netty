@@ -26,4 +26,10 @@ public class MessageController {
         return msg;
     }
 
+
+    @RequestMapping("ssl")
+    public String ssl(String msg){
+        return msg;
+    }
+
 }

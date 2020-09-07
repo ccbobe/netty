@@ -86,16 +86,16 @@ public class NettyServer implements InitializingBean, DisposableBean {
                     protected void initChannel(NioSocketChannel sh) throws Exception {
                         ChannelPipeline pipeline =sh.pipeline();
                         //分割符 \n,\r\n 等
-                       // pipeline.addLast("logging", new LoggingHandler(LogLevel.INFO));
-                       // pipeline.addLast(new StringDecoder(Charset.forName("UTF-8")));
-                       // pipeline.addLast(new StringEncoder(Charset.forName("UTF-8")));
-                       //  pipeline.addLast(new DelimiterBasedFrameDecoder(1024 * 10 * 10, Delimiters.lineDelimiter()));
 
+                        // pipeline.addLast(new StringDecoder(Charset.forName("UTF-8")));
+                        //  pipeline.addLast(new StringEncoder(Charset.forName("UTF-8")));
                         pipeline.addLast(new MsgDecoder());
+                        pipeline.addLast("logging", new LoggingHandler(LogLevel.INFO));
                         pipeline.addLast("heartBeatHandler", new IdleStateHandler(45, 0, 0, TimeUnit.SECONDS));
                         pipeline.addLast(new StoreHandler());
                         pipeline.addLast(new MessageHandler());
                         pipeline.addLast(new MsgEncoder());
+
                     }
                 });
 
