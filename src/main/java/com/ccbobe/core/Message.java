@@ -2,8 +2,10 @@ package com.ccbobe.core;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class Message {
+public class Message implements Serializable {
 
     /**
      * 消息大小 4

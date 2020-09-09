@@ -3,27 +3,23 @@ package com.ccbobe;
 import com.alibaba.fastjson.JSON;
 import com.ccbobe.codec.MessageDecoder;
 import com.ccbobe.codec.MessageEncoder;
-import com.ccbobe.codec.MsgDecoder;
-import com.ccbobe.codec.MsgEncoder;
 import com.ccbobe.core.Message;
 import com.ccbobe.core.Msg;
 import com.ccbobe.handler.ClientHandler;
-import com.ccbobe.handler.MessageHandler;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import io.netty.buffer.UnpooledHeapByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import org.junit.jupiter.api.Test;
 
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
@@ -56,11 +52,22 @@ class NettyApplicationTests {
         // 发起异步连接请求，绑定连接端口和host信息
         Channel channel = b.connect("172.18.0.68", 8081).sync().channel();
         Message msg = null;
-        for (int i = 0; i <1000000 ; i++) {
+        for (int i = 0; i <2000 ; i++) {
             msg = new Message();
             System.out.println("次数"+i);
             msg.setVersion(i);
-            msg.setData("wordl-----".getBytes());
+            msg.setData(("wordl-----aaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccc" +
+                    "sssddsddssddssssssssssssssssssssssssssssdjfsdndnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn" +
+                    "ddddd" +
+                    "dddddddddddddddddd我我我我我我呜呜呜呜呜呜呜呜无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无" +
+                    "我我我我我我呜呜呜呜呜呜呜呜无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无无" +
+                    "" +
+                    "少时诵诗书所" +
+                    "少时诵诗书" +
+                    "" +
+                    "少时诵诗书所所" +
+                    "少时诵诗书所" +
+                    "少时诵诗书所").getBytes());
             msg.setId(UUID.randomUUID().toString().replace("-","").toUpperCase());
             msg.setCmd(1);
             msg.setSize(msg.getData().length);
@@ -79,6 +86,54 @@ class NettyApplicationTests {
         Msg msg = JSON.parseObject(data, Msg.class);
 
         System.out.println(new String(msg.getData()));
+    }
+
+
+    @Test
+    public void testSerial() throws Exception {
+        Message msg = new Message();
+        msg.setSize(1);
+        msg.setCmd(1);
+        msg.setId("1234567dssss");
+        msg.setData("hollo world".getBytes());
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream ops = new ObjectOutputStream(bos);
+        ops.writeObject(msg);
+        ops.flush();
+
+        File file = new File("D:\\files\\oo.dat");
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        byte[] bytes = bos.toByteArray();
+        fileOutputStream.write(bytes);
+        fileOutputStream.flush();
+
+        fileOutputStream.close();
+        ops.close();
+        bos.close();
+        System.out.println(bytes);
+
+        FileInputStream fs = new FileInputStream(file);
+
+        FileChannel fileChannel = fs.getChannel();
+        ByteBuffer byteBuffer = ByteBuffer.allocate((int) fileChannel.size());
+        while ((fileChannel.read(byteBuffer)) > 0) {
+            // do nothing
+            // System.out.println("reading");
+        }
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(byteBuffer.array());
+
+        ObjectInputStream obs = new ObjectInputStream(bis);
+
+        Object object = obs.readObject();
+        if (object instanceof Message) {
+            Message message = (Message) object;
+            System.out.println(new String(message.getData()));
+        }
     }
 
 
