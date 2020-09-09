@@ -4,9 +4,10 @@ import com.ccbobe.core.Msg;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.MessageToByteEncoder;
 
+import java.sql.SQLOutput;
 import java.util.List;
+import java.util.UUID;
 
 public class MsgDecoder extends ByteToMessageDecoder {
     @Override
@@ -25,5 +26,9 @@ public class MsgDecoder extends ByteToMessageDecoder {
         msg.setSize(size);
         msg.setData(data);
         out.add(msg);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(UUID.randomUUID().toString().replace("-","").toUpperCase());
     }
 }

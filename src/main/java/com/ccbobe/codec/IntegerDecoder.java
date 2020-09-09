@@ -14,7 +14,8 @@ import java.util.List;
 public class IntegerDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        int anInt = in.getInt(4);
+        int anInt = in.readInt();
+        out.add(anInt);
 
     }
 }

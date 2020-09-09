@@ -1,8 +1,8 @@
 package com.ccbobe.handler;
 
 import com.alibaba.fastjson.JSON;
+import com.ccbobe.core.Message;
 import com.ccbobe.core.Msg;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
@@ -27,9 +27,10 @@ public class MessageHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof String){
             log.info("收到消息{}",msg.toString());
             ReferenceCountUtil.release(msg);
-        }else if (msg instanceof Msg){
+        }else if (msg instanceof Message){
           log.info("msg===>:{}", JSON.toJSONString(msg));
-            System.out.println(new String(((Msg) msg).getData()));
+            System.out.println(new String(((Message) msg).getData()
+            ));
             ReferenceCountUtil.release(msg);
         }else {
             ctx.fireChannelRead(msg);
@@ -45,6 +46,6 @@ public class MessageHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         System.out.println("error");
         cause.printStackTrace();
-        ctx.close();
+
     }
 }

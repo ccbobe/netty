@@ -14,5 +14,6 @@ public class MsgEncoder extends MessageToByteEncoder<Msg> {
         msg.setSize(data.length);
         out.writeInt(msg.getSize());// 2
         out.writeBytes(data); // 3
+        out.writeBytes(new byte[]{'\r','\n'});
     }
 }

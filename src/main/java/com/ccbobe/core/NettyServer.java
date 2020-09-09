@@ -1,15 +1,11 @@
 package com.ccbobe.core;
 
-import com.ccbobe.codec.IntegerDecoder;
-import com.ccbobe.codec.IntegerEncoder;
-import com.ccbobe.codec.MsgDecoder;
-import com.ccbobe.codec.MsgEncoder;
+import com.ccbobe.codec.*;
 import com.ccbobe.handler.IntegerHandler;
 import com.ccbobe.handler.MessageHandler;
 import com.ccbobe.handler.StoreHandler;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.*;
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -21,7 +17,13 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpRequestEncoder;
+import io.netty.handler.codec.http.HttpResponseDecoder;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
@@ -79,22 +81,21 @@ public class NettyServer implements InitializingBean, DisposableBean {
 
         bootstrap.group(accept,worker)
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG,1024)
+                .option(ChannelOption.SO_BACKLOG,1024*1024)
                 .childOption(ChannelOption.TCP_NODELAY,true)
+                .option(ChannelOption.ALLOCATOR,PooledByteBufAllocator.DEFAULT)
+                .childOption(ChannelOption.ALLOCATOR,PooledByteBufAllocator.DEFAULT)
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel sh) throws Exception {
                         ChannelPipeline pipeline =sh.pipeline();
                         //分割符 \n,\r\n 等
-
-                        // pipeline.addLast(new StringDecoder(Charset.forName("UTF-8")));
-                        //  pipeline.addLast(new StringEncoder(Charset.forName("UTF-8")));
-                        pipeline.addLast(new MsgDecoder());
-                        pipeline.addLast("logging", new LoggingHandler(LogLevel.INFO));
-                        pipeline.addLast("heartBeatHandler", new IdleStateHandler(45, 0, 0, TimeUnit.SECONDS));
+                        //这里使用自定义分隔符
+                        pipeline.addLast(new DelimiterBasedFrameDecoder(65536, Unpooled.copiedBuffer("$_".getBytes())));
+                        pipeline.addLast(new MessageDecoder());
+                        pipeline.addLast(new MessageEncoder());
                         pipeline.addLast(new StoreHandler());
                         pipeline.addLast(new MessageHandler());
-                        pipeline.addLast(new MsgEncoder());
 
                     }
                 });
