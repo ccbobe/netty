@@ -6,7 +6,11 @@ import com.ccbobe.codec.MessageEncoder;
 import com.ccbobe.core.Message;
 import com.ccbobe.core.Msg;
 import com.ccbobe.handler.ClientHandler;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -90,7 +94,7 @@ class NettyApplicationTests {
 
 
     @Test
-    public void testSerial() throws Exception {
+    public void testSerial() throws Exception {// java 序列化
         Message msg = new Message();
         msg.setSize(1);
         msg.setCmd(1);
@@ -135,6 +139,65 @@ class NettyApplicationTests {
             System.out.println(new String(message.getData()));
         }
     }
+
+    @Test
+    public  void  servKryo() throws Exception{
+        Kryo kryo = new Kryo();
+        kryo.setAutoReset(true);
+        kryo.setReferences(true);
+        kryo.register(Message.class);
+        Message message = new Message();
+        message.setData("ha".getBytes());
+        message.setId("ddddd");
+        message.setVersion(23);
+        Output output = new Output(new FileOutputStream("D:\\files\\oo.dat"));
+        kryo.writeObject(output, message);
+        byte[] buffer = output.getBuffer();
+        output.close();
+
+        Input input = new Input(new FileInputStream("D:\\files\\oo2.dat"));
+        Message object2 = kryo.readObject(input, Message.class);
+
+        System.out.println(JSON.toJSONString(object2));
+
+
+
+        input.close();
+    }
+
+
+    @Test
+    public  void  servKryoPool() throws Exception{
+        byte[] data = new byte[8];
+        int i = 1;
+        byte b = 1;
+        int bit = (int)((b>>2) & 0x1);
+        System.out.println(bit);
+         bit = (int)((b>>1)&(0xFF>>(8-5)));
+        System.out.println(bit);
+
+
+    }
+
+
+    @Test
+    public   void  testFile() throws Exception{
+        int bufferSize = 20;//字节
+        FileChannel src = new FileInputStream("D:\\files\\oo.dat").getChannel();
+        FileChannel dest = new FileOutputStream("D:\\files\\oo2.dat").getChannel();
+        ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+        int times = 0;//看读了几次
+        while(src.read(buffer) != -1) {//一次读满缓存区，10个字节
+            buffer.flip();
+            dest.write(buffer);
+            buffer.clear();
+            System.out.println(++times);
+        }
+        System.out.println("ok");
+    }
+
+
+
 
 
 }

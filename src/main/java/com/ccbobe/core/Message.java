@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class Message implements Serializable {
+public class Message/* implements Serializable*/ {
 
     /**
      * 消息大小 4
